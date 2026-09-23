@@ -1,0 +1,20 @@
+name: Migrate Base
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Clone upstream mirror
+      run: |
+        git clone --mirror https://github.com/MiDoNaSR545/los_kernel_xiaomi_sm6150.git repo.git
+
+    - name: Push mirror to new repo
+      run: |
+        cd repo.git
+        git push --mirror "https://hrihq:${{ secrets.GH_TOKEN }}@github.com/hrihq/D-77-kernel.git"
+
+    - name: Done
+      run: echo "Migration complete"
