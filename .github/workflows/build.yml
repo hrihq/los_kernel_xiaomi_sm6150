@@ -146,9 +146,15 @@ jobs:
         # merge_config can leave kconfig asking for new string/hex options
         # (silentoldconfig then blocks CI). Force-answer the known ones.
         echo 'CONFIG_TOUCHSCREEN_FTS_DIRECTORY="focaltech_touch"' >> out/.config
+        echo '# CONFIG_TOUCHSCREEN_GOODIX_GTX9896_UPDATE is not set' >> out/.config
 
         rm -f .config
         rm -rf include/config
+
+        # Non-interactive silentoldconfig: feed newline answers so any
+        # remaining NEW prompts take their defaults instead of aborting.
+        make O=out ARCH=arm64 olddefconfig || \
+          yes "" | make O=out ARCH=arm64 silentoldconfig || true
 
         make -j"$(nproc --all)" O=out ARCH=arm64 \
           HOSTCC=gcc HOSTCXX=g++ \
