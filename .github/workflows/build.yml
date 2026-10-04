@@ -143,6 +143,10 @@ jobs:
         scripts/kconfig/merge_config.sh -m -O out \
           out/.config arch/arm64/configs/vendor/sweet.config
 
+        # merge_config can leave kconfig asking for new string/hex options
+        # (silentoldconfig then blocks CI). Force-answer the known ones.
+        echo 'CONFIG_TOUCHSCREEN_FTS_DIRECTORY="focaltech_touch"' >> out/.config
+
         rm -f .config
         rm -rf include/config
 
