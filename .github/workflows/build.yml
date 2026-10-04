@@ -139,7 +139,7 @@ jobs:
         echo "Jobs       : $(nproc --all)"
         echo "========================================="
 
-        make O=out ARCH=arm64 sm8150-perf_defconfig
+        make O=out ARCH=arm64 vendor/sm8150-perf_defconfig
         scripts/kconfig/merge_config.sh -m -O out \
           arch/arm64/configs/vendor/sweet.config out/.config
 
