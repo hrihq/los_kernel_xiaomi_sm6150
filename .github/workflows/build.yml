@@ -141,7 +141,7 @@ jobs:
 
         make O=out ARCH=arm64 vendor/sm8150-perf_defconfig
         scripts/kconfig/merge_config.sh -m -O out \
-          arch/arm64/configs/vendor/sweet.config out/.config
+          out/.config arch/arm64/configs/vendor/sweet.config
 
         rm -f .config
         rm -rf include/config
@@ -159,8 +159,16 @@ jobs:
         KERNEL="out/arch/arm64/boot/Image.gz"
         DTBO="out/arch/arm64/boot/dtbo.img"
 
-        failed=0
+        # This tree builds uncompressed Image unless GZIP compression is
+        # explicitly requested. Accept either.
+        if [[ ! -f "$KERNEL" ]]; then
+          if [[ -f "out/arch/arm64/boot/Image" ]]; then
+            echo "Found uncompressed Image, gzipping"
+            gzip -n -k -f out/arch/arm64/boot/Image
+          fi
+        fi
 
+        failed=0
         for file in "$KERNEL" "$DTBO"; do
           if [[ ! -f "$file" ]]; then
             echo "Missing: $file"
@@ -170,10 +178,6 @@ jobs:
             ls -lh "$file"
           fi
         done
-
-        # dtb.img is not built by this tree (DTB shipped via dtbo / appended);
-        # collect the sweet DTB blobs instead.
-        find out/arch/arm64/boot/dts -name '*.dtb' | head -n 20 || true
 
         if [[ "$failed" -ne 0 ]]; then
           echo "Kernel compilation failed."
@@ -213,6 +217,10 @@ jobs:
 
         sed -i 's/kernel.string=.*/kernel.string=Glade Sweet by hrihq - RN12Pro4G/' anykernel.sh
         cp "$GITHUB_WORKSPACE/.github/glade-banner.txt" banner
+
+        echo "=== final config check ==="
+        grep -E "^CONFIG_MACH_XIAOMI_SWEET=|^CONFIG_BPF_SYSCALL=|^CONFIG_SCHED_WALT=" "$GITHUB_WORKSPACE/out/sweet_defconfig.txt" || true
+        grep -c "is not set" "$GITHUB_WORKSPACE/out/sweet_defconfig.txt" || true
 
         zip -r9 \
           "../Glade-Sweet-${{ github.ref_name }}-${{ env.BUILD_TIME }}.zip" \
